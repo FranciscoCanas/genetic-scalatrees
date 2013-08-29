@@ -24,7 +24,6 @@ What's needed?
 ==============
 A lot more stuff. Like I said, this is a WIP for me to learn Scala and not some
 end product. So for instance, I still need to implement:
-- Mutation and crossbreeding of source trees.
 - Generics and pattern-matching in the Tfunc function wrapper and random tree
   generation so as to more easily include functions using different return and parameter types.
 - Forests of source code trees, evaluation functions, evolution, etc.
