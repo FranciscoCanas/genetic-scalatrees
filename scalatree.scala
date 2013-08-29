@@ -118,7 +118,11 @@ class Stree(
  * a function, a parameter, or a constant.
  */
 abstract class Node() {
-   def printToString(paramlist: List[Any], indent: Int=0)
+  def printToString(paramlist: List[Any], indent: Int=0) {
+    for(i <- 0 to indent-1) print(" ")
+    print("|")
+    for(i <- 0 to 3) print("-")
+  }
    def evaluate(paramlist: List[Any]): Any
   }
 
@@ -150,11 +154,10 @@ class Fnode(val func: Tfunc, var children: List[Node]) extends Node() {
    * Prints the name of this function and recusively
    * prints its children.
    */
-  def printToString(paramlist: List[Any], indent: Int=0) {
-    //(0 to indent).foreach(print(' '))
-    for(i <- 0 to indent) print("-")
-    println(name+"="+evaluate(paramlist))
-    for (child <- children) yield child.printToString(paramlist, indent+4)
+  override def printToString(paramlist: List[Any], indent: Int=0) {
+    super.printToString(paramlist, indent)
+    println(name + "=" + evaluate(paramlist))
+    for (child <- children) yield child.printToString(paramlist, indent+6)
   }
 
 }
@@ -174,8 +177,8 @@ class Pnode(paramid: Int) extends Node() {
   /**
    * Prints the parameter index and its value.
    */
-  def printToString(paramlist: List[Any], indent: Int = 0) {
-    for (i <- 0 to indent) print("-")
+  override def printToString(paramlist: List[Any], indent: Int = 0) {
+    super.printToString(paramlist, indent)
     println(paramid + "=" + evaluate(paramlist))
   }
 }
@@ -194,8 +197,8 @@ class Cnode(value: Any) extends Node() {
   /**
    * Prints the constant.
    */
-  def printToString(paramlist: List[Any], indent: Int = 0) {
-    for(i <- 0 to indent) print("-")
+  override def printToString(paramlist: List[Any], indent: Int = 0) {
+    super.printToString(paramlist, indent)
     println(value)
   }
 }
