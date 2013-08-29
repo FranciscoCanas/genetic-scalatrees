@@ -8,7 +8,7 @@ package object stree {
  * the tree.
  */
 class Stree(
-  val numparam: Int,
+  val numParam: Int,
   val funcList: List[Tfunc],
   val maxDepth: Int = 5,
   val prFunc: Float = 0.6f,
@@ -23,23 +23,23 @@ class Stree(
     /**
      * Generates a random tree using the given parameters.
      */
-    def random_tree(depth: Int=0): Node = {
+    def random_tree(depth: Int=0,atroot: Boolean=true): Node = {
       val roll = util.Random.nextFloat()
 
-      if ((roll < prFunc) && (depth < maxDepth)) {
+      if (atroot || ((roll < prFunc) && (depth < maxDepth))) {
           // make a function node here, and recurse.
           val newfunc = choice(funcList)
 
           // Recusively create children subtrees.
-          var children = for (i <- 1 to newfunc.numparam)
-                            yield random_tree(depth+1)
+          var children = for (i <- 1 to newfunc.numParam)
+                            yield random_tree(depth+1,false)
 
           // Wrap it up in an fnode and return.
           new Fnode(newfunc, children.toList.asInstanceOf[List[Node]])
 
         } else if (roll < prParam) {
           // Make a parameter node.
-          new Pnode(util.Random.nextInt(numparam))
+          new Pnode(util.Random.nextInt(numParam))
 
         } else {
           // Make a constant node.
@@ -58,7 +58,7 @@ class Stree(
     def _mutate(subtree: Node, probMut: Float=0.15f, depth: Int=0): Node = {
       if (util.Random.nextFloat() < probMut) {
         // Return a brand new subtree.
-        return random_tree(depth)
+        random_tree(depth)
       } else {
         // If this is a function node:
         if (subtree.isInstanceOf[Fnode]) {
@@ -67,10 +67,38 @@ class Stree(
                             yield (_mutate(child, probMut, depth+1))
 
         }
+        // Return the current subtree, mutated or not.
         subtree
       }
 
     }
+
+    /**
+     * Recurses through this and an 'other' tree, randomly replaces 
+     * subtrees on this tree with subtrees from the other.
+     */
+    def crossbreed(otherroot: Node, probCross: Float=0.15f): Stree = {
+      var newroot = _crossbreed(root, otherroot, probCross)
+      new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc, newroot)
+    }
+
+    def _crossbreed(thisroot: Node, otherroot: Node, probCross: Float=0.15f, atroot: Boolean=true): Node = {
+      if ((!atroot)&& (util.Random.nextFloat() < probCross)) {
+        // Cross these trees
+        otherroot
+      } else {
+        // See about crossing the childrens, if any:
+        if (thisroot.isInstanceOf[Fnode] && otherroot.isInstanceOf[Fnode]) {
+          // Randomly replace this node's children with the other node's children.
+          thisroot.asInstanceOf[Fnode].children = for (child <- thisroot.asInstanceOf[Fnode].children)
+                     yield (_crossbreed(child, choice(otherroot.asInstanceOf[Fnode].children),probCross,false))
+        }
+      // Return the current root, whether crossed or not.
+      thisroot
+      }
+    }
+
+
 
     def printToString(paramlist: List[Any]) {
       root.printToString(paramlist)
@@ -98,7 +126,7 @@ abstract class Node() {
  * Wrapper for a function that holds number of parameters
  * and name of the function as well as the function object.
  */
-class Tfunc(val name: String, val numparam:Int, val function: List[Any]=>Any){
+class Tfunc(val name: String, val numParam:Int, val function: List[Any]=>Any){
 
 }
 

@@ -19,13 +19,23 @@ object treeTests {
   val flist = List[Tfunc](tfunc_if,tfunc_gt,tfunc_add,tfunc_sub, tfunc_mul)
   val pars = List[Any](1,3,2)
 
-  val t = new Stree(3,flist,5,0.5f,0.5f)
+  val t = new Stree(3, flist, 5, 0.5f, 0.5f)
+  val y = new Stree(3, flist, 5, 0.5f, 0.5f)
 
-  println("Creating Random Tree:")
+  println("Creating Random Trees:")
+  println("Tree T:")
   t.printToString(pars)
-  println("Mutating Tree: ")
+  println("Mutating Tree T: ")
   t.mutate(0.5f)
+  println("Mutated Tree T: ")
   t.printToString(pars)
+
+  println("Tree Y: ")
+  y.printToString(pars)
+  println("Crossing Y and T to produce Tree kid:")
+  val kid=y.crossbreed(t.root, 0.5f)
+  println("Tree kid:")
+  kid.printToString(pars)
 
   }
 
