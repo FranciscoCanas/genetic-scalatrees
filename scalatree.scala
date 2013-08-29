@@ -47,6 +47,31 @@ class Stree(
         }
     }
 
+    /**
+     * Recurses through the tree and randomly mutates 
+     * its subtrees.
+     */
+    def mutate(probMut: Float=0.15f){
+      root = _mutate(root, probMut)
+    }
+
+    def _mutate(subtree: Node, probMut: Float=0.15f, depth: Int=0): Node = {
+      if (util.Random.nextFloat() < probMut) {
+        // Return a brand new subtree.
+        return random_tree(depth)
+      } else {
+        // If this is a function node:
+        if (subtree.isInstanceOf[Fnode]) {
+          // Mutate its children:
+          subtree.asInstanceOf[Fnode].children = for (child <- subtree.asInstanceOf[Fnode].children)
+                            yield (_mutate(child, probMut, depth+1))
+
+        }
+        subtree
+      }
+
+    }
+
     def printToString(paramlist: List[Any]) {
       root.printToString(paramlist)
     }

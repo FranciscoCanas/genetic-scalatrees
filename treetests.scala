@@ -19,8 +19,12 @@ object treeTests {
   val flist = List[Tfunc](tfunc_if,tfunc_gt,tfunc_add,tfunc_sub, tfunc_mul)
   val pars = List[Any](1,3,2)
 
-  val t = new Stree(3,flist,12,0.5f,0.5f)
+  val t = new Stree(3,flist,5,0.5f,0.5f)
 
+  println("Creating Random Tree:")
+  t.printToString(pars)
+  println("Mutating Tree: ")
+  t.mutate(0.5f)
   t.printToString(pars)
 
   }
