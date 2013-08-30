@@ -98,13 +98,36 @@ class Stree(
       }
     }
 
+    /**
+     * Evaluates this source tree against a list of list containing parameters and their
+     * expected output. Returns a score based on the tree's performance.
+     *
+     * data should be of the form:
+     * ((x11,x12,x13...y1),
+     *  (x21,x22...    y2),
+     *  ...
+     *  (xn1, xn2...   yn))
+     */
+    def scoreAgainstData(data: List[List[Any]]):Int = {
+      val scores = for (v <- data) yield score(v)
+      scores.sum
+    }
+
+    /**
+     * Returns absolute differenc between the tree's evaluation
+     * of some parameters and the expected result.
+     */
+    def score(v: List[Any]):Int= {
+      val s = evaluate(v.dropRight(1)).asInstanceOf[Int]- v.last.asInstanceOf[Int]
+      if (s>0) s else -s
+    }
 
 
     def printToString(paramlist: List[Any]) {
       root.printToString(paramlist)
     }
 
-    def evaluate(paramlist: List[Any]) {
+    def evaluate(paramlist: List[Any]): Any = {
       root.evaluate(paramlist)
     }
 

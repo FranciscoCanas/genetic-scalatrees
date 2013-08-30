@@ -3,6 +3,13 @@ import com.scalatrees.stree._
 object treeTests {
   def main(args: Array[String]) {
 
+    val data = List[List[Int]](
+        List[Int](1,2,3,6),
+        List[Int](2,3,4,9),
+        List[Int](3,4,5,12),
+        List[Int](4,5,6,15)
+      )
+
   /**
    * Some common functions wrapped in tfuncs for testing.
    **/
@@ -37,6 +44,8 @@ object treeTests {
   println("Tree kid:")
   kid.printToString(pars)
 
+  println("Scoring Tree kid Against Data:")
+  println(kid.scoreAgainstData(data))
   }
 
 /**
