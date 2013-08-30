@@ -1,12 +1,13 @@
 package com.scalatrees
 
-package object stree {
+
+
 
 /**
- * This is a wrapper class for the tree-like source structure
- * that keeps track of the parameters used in creating
- * the tree.
- */
+* This is a wrapper class for the tree-like source structure
+* that keeps track of the parameters used in creating
+* the tree.
+*/
 class Stree(
   val numParam: Int,
   val funcList: List[Tfunc],
@@ -15,14 +16,24 @@ class Stree(
   val prParam: Float = 0.5f,
   val constFunc: ()=>Any=()=>util.Random.nextInt(100),
   var root: Node = null ) {
+  
+  
+/**
+* Return a randomly chosen element
+* from the list of stuff.
+*/
+def choice[A](stuff: List[A]): A = {
+  stuff(util.Random.nextInt(stuff.length))
+
+}
 
     if (root==null) {
       root = random_tree()
     }
 
     /**
-     * Generates a random tree using the given parameters.
-     */
+* Generates a random tree using the given parameters.
+*/
     def random_tree(depth: Int=0,atroot: Boolean=true): Node = {
       val roll = util.Random.nextFloat()
 
@@ -48,9 +59,9 @@ class Stree(
     }
 
     /**
-     * Recurses through the tree and randomly mutates 
-     * its subtrees.
-     */
+* Recurses through the tree and randomly mutates
+* its subtrees.
+*/
     def mutate(probMut: Float=0.15f){
       root = _mutate(root, probMut)
     }
@@ -74,9 +85,9 @@ class Stree(
     }
 
     /**
-     * Recurses through this and an 'other' tree, randomly replaces 
-     * subtrees on this tree with subtrees from the other.
-     */
+* Recurses through this and an 'other' tree, randomly replaces
+* subtrees on this tree with subtrees from the other.
+*/
     def crossbreed(otherroot: Node, probCross: Float=0.15f): Stree = {
       var newroot = _crossbreed(root, otherroot, probCross)
       new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc, newroot)
@@ -99,24 +110,24 @@ class Stree(
     }
 
     /**
-     * Evaluates this source tree against a list of list containing parameters and their
-     * expected output. Returns a score based on the tree's performance.
-     *
-     * data should be of the form:
-     * ((x11,x12,x13...y1),
-     *  (x21,x22...    y2),
-     *  ...
-     *  (xn1, xn2...   yn))
-     */
+* Evaluates this source tree against a list of list containing parameters and their
+* expected output. Returns a score based on the tree's performance.
+*
+* data should be of the form:
+* ((x11,x12,x13...y1),
+* (x21,x22... y2),
+* ...
+* (xn1, xn2... yn))
+*/
     def scoreAgainstData(data: List[List[Any]]):Int = {
       val scores = for (v <- data) yield score(v)
       scores.sum
     }
 
     /**
-     * Returns absolute differenc between the tree's evaluation
-     * of some parameters and the expected result.
-     */
+* Returns absolute differenc between the tree's evaluation
+* of some parameters and the expected result.
+*/
     def score(v: List[Any]):Int= {
       val s = evaluate(v.dropRight(1)).asInstanceOf[Int]- v.last.asInstanceOf[Int]
       if (s>0) s else -s
@@ -137,9 +148,9 @@ class Stree(
   }
 
 /**
- * Represents a particular object in the source tree: could be
- * a function, a parameter, or a constant.
- */
+* Represents a particular object in the source tree: could be
+* a function, a parameter, or a constant.
+*/
 abstract class Node() {
   def printToString(paramlist: List[Any], indent: Int=0) {
     for(i <- 0 to indent-1) print(" ")
@@ -150,33 +161,33 @@ abstract class Node() {
   }
 
 /**
- * Wrapper for a function that holds number of parameters
- * and name of the function as well as the function object.
- */
+* Wrapper for a function that holds number of parameters
+* and name of the function as well as the function object.
+*/
 class Tfunc(val name: String, val numParam:Int, val function: List[Any]=>Any){
 
 }
 
 /**
- * A tree node that contains a function.
- */
+* A tree node that contains a function.
+*/
 class Fnode(val func: Tfunc, var children: List[Node]) extends Node() {
   val name = func.name
   val function = func.function
 
   /**
-   * Recursively evaluate the children of this function,
-   * and evaluate this function to get the result.
-   */
+* Recursively evaluate the children of this function,
+* and evaluate this function to get the result.
+*/
    def evaluate(paramlist: List[Any]): Any =
     function(
       for (child <- children)
         yield child.asInstanceOf[Node].evaluate(paramlist)
            )
   /**
-   * Prints the name of this function and recusively
-   * prints its children.
-   */
+* Prints the name of this function and recusively
+* prints its children.
+*/
   override def printToString(paramlist: List[Any], indent: Int=0) {
     super.printToString(paramlist, indent)
     println(name + "=" + evaluate(paramlist))
@@ -186,20 +197,20 @@ class Fnode(val func: Tfunc, var children: List[Node]) extends Node() {
 }
 
 /**
- * A tree node that holds a parameter: ie, the
- * index of the parameter, not its literal value.
- */
+* A tree node that holds a parameter: ie, the
+* index of the parameter, not its literal value.
+*/
 class Pnode(paramid: Int) extends Node() {
 
   /**
-   * Return the value of this parameter.
-   */
+* Return the value of this parameter.
+*/
   def evaluate(paramlist: List[Any]): Any =
     paramlist(paramid).asInstanceOf[Any]
 
   /**
-   * Prints the parameter index and its value.
-   */
+* Prints the parameter index and its value.
+*/
   override def printToString(paramlist: List[Any], indent: Int = 0) {
     super.printToString(paramlist, indent)
     println(paramid + "=" + evaluate(paramlist))
@@ -207,19 +218,19 @@ class Pnode(paramid: Int) extends Node() {
 }
 
 /**
- *A tree node that holds a constant value.
- */
+*A tree node that holds a constant value.
+*/
 class Cnode(value: Any) extends Node() {
 
   /**
-   * Return the value of this constant.
-   */
+* Return the value of this constant.
+*/
   def evaluate(paramlist: List[Any]): Any =
     value
 
   /**
-   * Prints the constant.
-   */
+* Prints the constant.
+*/
   override def printToString(paramlist: List[Any], indent: Int = 0) {
     super.printToString(paramlist, indent)
     println(value)
@@ -227,15 +238,6 @@ class Cnode(value: Any) extends Node() {
 }
 
 /**
- * Useful Utility Functions
- */
+* Useful Utility Functions
+*/
 
-/**
- * Return a randomly chosen element
- * from the list of stuff.
- */
-def choice[A](stuff: List[A]): A = {
-  stuff(util.Random.nextInt(stuff.length))
-
-}
-}

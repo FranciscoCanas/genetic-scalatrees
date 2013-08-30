@@ -1,4 +1,6 @@
-import com.scalatrees.stree._
+package com.scalatrees
+
+
 
 object treeTests {
   def main(args: Array[String]) {
@@ -10,7 +12,7 @@ object treeTests {
         List[Int](4,5,6,15)
       )
 
-  /**
+  /**d
    * Some common functions wrapped in tfuncs for testing.
    **/
   val tfunc_add=new Tfunc("add", 2, (paramlist: List[Any])=>paramlist(0).asInstanceOf[Int] + paramlist(1).asInstanceOf[Int])
