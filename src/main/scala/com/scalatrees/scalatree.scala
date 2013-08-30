@@ -1,7 +1,10 @@
 package com.scalatrees
 
-
-
+/**
+* Wrapper for a function that holds number of parameters
+* and name of the function as well as the function object.
+*/
+class Tfunc(val name: String, val numParam:Int, val function: List[Any]=>Any)
 
 /**
 * This is a wrapper class for the tree-like source structure
@@ -14,49 +17,45 @@ class Stree(
   val maxDepth: Int = 5,
   val prFunc: Float = 0.6f,
   val prParam: Float = 0.5f,
-  val constFunc: ()=>Any=()=>util.Random.nextInt(100),
+  val constFunc: () => Any = () => util.Random.nextInt(100),
   var root: Node = null ) {
   
+  if (root==null) root = random_tree()
   
-/**
-* Return a randomly chosen element
-* from the list of stuff.
-*/
-def choice[A](stuff: List[A]): A = {
-  stuff(util.Random.nextInt(stuff.length))
+	/**
+	 * Return a randomly chosen element
+	 * from the list of stuff.
+	 */
+	def choice[A](stuff: List[A]): A = 
+	  stuff(util.Random.nextInt(stuff.length))
 
-}
+  
+  
 
-    if (root==null) {
-      root = random_tree()
-    }
+  /**
+   * Generates a random tree using the given parameters.
+   */
+  def random_tree(depth: Int=0, atroot: Boolean=true): Node = {
+    val roll = util.Random.nextFloat()
 
-    /**
-* Generates a random tree using the given parameters.
-*/
-    def random_tree(depth: Int=0,atroot: Boolean=true): Node = {
-      val roll = util.Random.nextFloat()
+    if (atroot || ((roll < prFunc) && (depth < maxDepth))) {
+      val newfunc = choice(funcList) // make a function node here, and recurse.
+	
+	    var children = // Recusively create children subtrees.
+	      for (i <- 1 to newfunc.numParam)
+	      	yield random_tree(depth+1, false)
+	
+	    // Wrap it up in an fnode and return.
+	    new Fnode(newfunc, children.toList.asInstanceOf[List[Node]])
 
-      if (atroot || ((roll < prFunc) && (depth < maxDepth))) {
-          // make a function node here, and recurse.
-          val newfunc = choice(funcList)
-
-          // Recusively create children subtrees.
-          var children = for (i <- 1 to newfunc.numParam)
-                            yield random_tree(depth+1,false)
-
-          // Wrap it up in an fnode and return.
-          new Fnode(newfunc, children.toList.asInstanceOf[List[Node]])
-
-        } else if (roll < prParam) {
-          // Make a parameter node.
-          new Pnode(util.Random.nextInt(numParam))
-
-        } else {
-          // Make a constant node.
-          new Cnode(constFunc())
-        }
-    }
+    } 
+    else if (roll < prParam) {
+	    new Pnode(util.Random.nextInt(numParam)) // Make a parameter node.
+	  } 
+    else {
+	    new Cnode(constFunc()) // Make a constant node.
+	  }
+  }
 
     /**
 * Recurses through the tree and randomly mutates
@@ -162,13 +161,7 @@ abstract class Node() {
    def evaluate(paramlist: List[Any]): Any
   }
 
-/**
-* Wrapper for a function that holds number of parameters
-* and name of the function as well as the function object.
-*/
-class Tfunc(val name: String, val numParam:Int, val function: List[Any]=>Any){
 
-}
 
 /**
 * A tree node that contains a function.
