@@ -205,7 +205,11 @@ class Pnode(paramid: Int) extends Node() {
    */
   override def printToString(paramlist: List[Any], indent: String=" ") {
     super.printToString(paramlist, indent)
-    println(noder + paramid + "=" + evaluate(paramlist))
+    println(noder + paramToString(paramid) + "=" + evaluate(paramlist))
+  }
+
+  def paramToString(id: Int): String = {
+    "p[" + id + "]"
   }
 }
 
