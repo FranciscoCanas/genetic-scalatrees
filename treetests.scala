@@ -46,6 +46,21 @@ object treeTests {
 
   println("Scoring Tree kid Against Data:")
   println(kid.scoreAgainstData(data))
+
+  println("Making Forest")
+  val forest = makeForest(10,3,flist,constFunc=()=>util.Random.nextInt(10))
+  for (tree <- forest) tree.printToString(pars)
+
+  println("Scoring Forest")
+  val scores = scoreForest(forest, data)
+  for (score <- scores) {
+    score._1.printToString(pars)
+    println("Score: " + score._2)
+  }
+
+  val best = scores.sortBy(_._2).head
+  println("Best Tree with a score of " + best._2)
+  best._1.printToString(pars)
   }
 
 /**

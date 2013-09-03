@@ -123,7 +123,7 @@ class Stree(
     }
 
 
-    def printToString(paramlist: List[Any]) {
+    def printToString(paramlist: List[Any] = List()) {
       root.printToString(paramlist)
     }
 
@@ -241,4 +241,24 @@ def choice[A](stuff: List[A]): A = {
   stuff(util.Random.nextInt(stuff.length))
 
 }
+
+/**
+ * Return a list of trees randomly generated from the given
+ * parameters.
+ */
+def makeForest(popsize: Int,
+  numParam: Int,
+  funcList: List[Tfunc],
+  maxDepth: Int = 5,
+  prFunc: Float = 0.6f,
+  prParam: Float = 0.5f,
+  constFunc: ()=>Any=()=>util.Random.nextInt(100)
+  ): List[Stree] = {
+    for (i <- (0 to popsize).toList) yield new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc)
+  }
+
+def scoreForest(forest: List[Stree], data: List[List[Int]]): List[(Stree,Int)] = {
+  forest.map((tree)=> (tree, tree.scoreAgainstData(data)))
+}
+
 }
