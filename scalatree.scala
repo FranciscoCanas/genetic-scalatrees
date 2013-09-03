@@ -141,10 +141,12 @@ class Stree(
  * a function, a parameter, or a constant.
  */
 abstract class Node() {
-  def printToString(paramlist: List[Any], indent: Int=0) {
-    for(i <- 0 to indent-1) print(" ")
-    print("|")
-    for(i <- 0 to 3) print("-")
+  val spacer = "    "
+  val noder = "\\"
+  val stemmer = "|"
+
+  def printToString(paramlist: List[Any], indent: String=" ") {
+    print(indent)
   }
    def evaluate(paramlist: List[Any]): Any
   }
@@ -177,10 +179,11 @@ class Fnode(val func: Tfunc, var children: List[Node]) extends Node() {
    * Prints the name of this function and recusively
    * prints its children.
    */
-  override def printToString(paramlist: List[Any], indent: Int=0) {
+  override def printToString(paramlist: List[Any], indent: String=" ") {
     super.printToString(paramlist, indent)
-    println(name + "=" + evaluate(paramlist))
-    for (child <- children) yield child.printToString(paramlist, indent+6)
+    println(noder + name + "=" + evaluate(paramlist))
+    for (child <- children.dropRight(1)) child.printToString(paramlist, indent + spacer + stemmer)
+    children.last.printToString(paramlist, indent + " " + spacer)
   }
 
 }
@@ -200,9 +203,9 @@ class Pnode(paramid: Int) extends Node() {
   /**
    * Prints the parameter index and its value.
    */
-  override def printToString(paramlist: List[Any], indent: Int = 0) {
+  override def printToString(paramlist: List[Any], indent: String=" ") {
     super.printToString(paramlist, indent)
-    println(paramid + "=" + evaluate(paramlist))
+    println(noder + paramid + "=" + evaluate(paramlist))
   }
 }
 
@@ -220,9 +223,9 @@ class Cnode(value: Any) extends Node() {
   /**
    * Prints the constant.
    */
-  override def printToString(paramlist: List[Any], indent: Int = 0) {
+  override def printToString(paramlist: List[Any], indent: String=" ") {
     super.printToString(paramlist, indent)
-    println(value)
+    println(noder + value)
   }
 }
 
