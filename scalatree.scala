@@ -141,9 +141,9 @@ class Stree(
  * a function, a parameter, or a constant.
  */
 abstract class Node() {
-  val spacer = "    "
-  val noder = "\\"
-  val stemmer = "|"
+  val spacer = "  "
+  val noder =   "\\"
+  val stemmer = " |"
 
   def printToString(paramlist: List[Any], indent: String=" ") {
     print(indent)
@@ -261,8 +261,29 @@ def makeForest(popsize: Int,
     for (i <- (0 to popsize).toList) yield new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc)
   }
 
+/**
+ * Return a list of tuples containing a tree from the forest and its score against some
+ * given data.
+ */
 def scoreForest(forest: List[Stree], data: List[List[Int]]): List[(Stree,Int)] = {
   forest.map((tree)=> (tree, tree.scoreAgainstData(data)))
 }
+
+/**
+ * Given a population of trees and some data, make a new generation of this population by:
+ * 1 - scoring each tree against this data
+ * 2 - removing a proportion, p, of the population
+ * 3 - crossbreeding the remaining trees randomly to create a new population
+ */
+def generateGeneration(forest: List[Stree], data: List[List[Int]], propToPrune: Float=0.5f): List[Stree] = {
+
+  val sortedTreeScores = scoreForest(forest, data).sortBy(_._2)
+  val topTrees = sortedTreeScores.dropRight((propToPrune * sortedTreeScores.length).toInt).unzip
+
+  // Randomly cross trees here.
+
+  topTrees._1
+}
+
 
 }
