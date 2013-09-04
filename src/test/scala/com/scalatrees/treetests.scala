@@ -63,6 +63,13 @@ object treeTests {
   val best = scores.sortBy(_._2).head
   println("Best Tree with a score of " + best._2)
   best._1.printToString(pars)
+
+  println("Next gen:")
+  val newgen = generateGeneration(forest, data)
+  val newgenscore = scoreForest(newgen, data)
+  val newbest = newgenscore.sortBy(_._2).head
+  println("New Best Score: " + newbest._2)
+  newbest._1.printToString(pars)
   }
 
 /**
