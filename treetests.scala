@@ -48,37 +48,49 @@ object treeTests {
   println(kid.scoreAgainstData(data))
 
   println("Making Forest")
-  val forest = makeForest(10,3,flist,constFunc=()=>util.Random.nextInt(10))
-  //for (tree <- forest) tree.printToString(pars)
+  val forest = makeForest(200,3,flist,constFunc=()=>util.Random.nextInt(10))
+  println("Evolving Forest")
+  val finalPair =  evolve(forest, 50, data)
 
-  println("Scoring Forest")
-  val scores = scoreForest(forest, data)
-
-  val best = scores.sortBy(_._2).head
-  println("Best Tree with a score of " + best._2)
-
-  println("Next gen:")
-  val newgen = generateGeneration(forest, data, 0.5f, 0.5f, 0.1f)
-  val newgenscore = scoreForest(newgen, data)
-  val newbest = newgenscore.sortBy(_._2).head
-  println("New Best Score: " + newbest._2)
-  newbest._1.printToString(pars)
-
-  println("First Gen Best Tree:")
-  best._1.printToString(pars)
-  println("Second Gen Best Tree:")
-  newbest._1.printToString(pars)
-  println("First Gen Best Score: " + best._2)
-  println("Second Gen Best Score: " + newbest._2)
-
+  println("Best Tree Ever with Score of " + finalPair._1._2)
+  finalPair._1._1.printToString(pars)
   }
 
-/**
- * Nice test tree.
- */
-def maketree() {
+  def evolve(forest: List[Stree],
+    numgens: Int,
+    data: List[List[Int]],
+    gen: Int=1,
+    prevBestWorst: ((Stree,Int),(Stree,Int))=null):((Stree,Int),(Stree,Int))= {
+    val score = scoreForest(forest, data)
+    val thisBestWorst = showStats(score, gen)
+    val newgen = generateGeneration(forest, data)
 
-}
+    val newBestWorst =
+      if (prevBestWorst != null) {
+        val newbest = if (thisBestWorst._1._2 < prevBestWorst._1._2) thisBestWorst._1 else prevBestWorst._1
+        val newworst = if (thisBestWorst._2._2 > prevBestWorst._2._2) thisBestWorst._2 else prevBestWorst._2
+        (newbest, newworst)
+      } else {
+        thisBestWorst
+      }
+
+      if (numgens <= 1) newBestWorst else  evolve(newgen, numgens-1, data, gen+1, newBestWorst)
+  }
+
+  def showStats(f: List[(Stree,Int)], gen: Int=1): ((Stree,Int),(Stree,Int)) = {
+    val sorted = f.sortBy(_._2)
+    val best = sorted.head
+    val worst = sorted.last
+    val avg = f.unzip._2.sum / f.length
+    println("Generation " + gen)
+    println("Number of Trees:" + f.length)
+    println("Best Tree Score: " + best._2)
+    println("Avg Tree Score: " + avg)
+    println("Worst Tree Score: " + worst._2)
+    println()
+    (best,worst)
+  }
+
 /**
  * The common ternary if statement:
  * if (p(1)) return p(1)
