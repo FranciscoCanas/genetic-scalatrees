@@ -49,7 +49,7 @@ object treeTests {
 
   println("Making Forest")
   val forest = makeForest(10,3,flist,constFunc=()=>util.Random.nextInt(10))
-  for (tree <- forest) tree.printToString(pars)
+  //for (tree <- forest) tree.printToString(pars)
 
   println("Scoring Forest")
   val scores = scoreForest(forest, data)

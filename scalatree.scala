@@ -141,7 +141,7 @@ class Stree(
  * a function, a parameter, or a constant.
  */
 abstract class Node() {
-  val spacer = "  "
+  val spacer = " "
   val noder =   "\\"
   val stemmer = " |"
 
@@ -182,8 +182,8 @@ class Fnode(val func: Tfunc, var children: List[Node]) extends Node() {
   override def printToString(paramlist: List[Any], indent: String=" ") {
     super.printToString(paramlist, indent)
     println(noder + name + "=" + evaluate(paramlist))
-    for (child <- children.dropRight(1)) child.printToString(paramlist, indent + spacer + stemmer)
-    children.last.printToString(paramlist, indent + " " + spacer)
+    for (child <- children.dropRight(1)) child.printToString(paramlist, indent + spacer * 2 + stemmer)
+    children.last.printToString(paramlist, indent + spacer * 4)
   }
 
 }
@@ -295,6 +295,5 @@ def generateGeneration(forest: List[Stree], data: List[List[Int]], propToPrune: 
   // join the parent with the kid trees and return that.
   topTrees ++ kids
 }
-
 
 }
