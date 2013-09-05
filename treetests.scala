@@ -53,21 +53,24 @@ object treeTests {
 
   println("Scoring Forest")
   val scores = scoreForest(forest, data)
-  for (score <- scores) {
-    score._1.printToString(pars)
-    println("Score: " + score._2)
-  }
 
   val best = scores.sortBy(_._2).head
   println("Best Tree with a score of " + best._2)
-  best._1.printToString(pars)
 
   println("Next gen:")
-  val newgen = generateGeneration(forest, data)
+  val newgen = generateGeneration(forest, data, 0.5f, 0.5f, 0.1f)
   val newgenscore = scoreForest(newgen, data)
   val newbest = newgenscore.sortBy(_._2).head
   println("New Best Score: " + newbest._2)
   newbest._1.printToString(pars)
+
+  println("First Gen Best Tree:")
+  best._1.printToString(pars)
+  println("Second Gen Best Tree:")
+  newbest._1.printToString(pars)
+  println("First Gen Best Score: " + best._2)
+  println("Second Gen Best Score: " + newbest._2)
+
   }
 
 /**

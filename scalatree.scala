@@ -275,14 +275,25 @@ def scoreForest(forest: List[Stree], data: List[List[Int]]): List[(Stree,Int)] =
  * 2 - removing a proportion, p, of the population
  * 3 - crossbreeding the remaining trees randomly to create a new population
  */
-def generateGeneration(forest: List[Stree], data: List[List[Int]], propToPrune: Float=0.5f): List[Stree] = {
+def generateGeneration(forest: List[Stree], data: List[List[Int]], propToPrune: Float=0.5f, probCross: Float=0.5f, probMutate: Float=0.25f): List[Stree] = {
 
+  // Make a list of trees sorted by increasing score.
   val sortedTreeScores = scoreForest(forest, data).sortBy(_._2)
-  val topTrees = sortedTreeScores.dropRight((propToPrune * sortedTreeScores.length).toInt).unzip
+  // Take the best propToPrune number of trees.
+  val topTrees = sortedTreeScores.dropRight((propToPrune * sortedTreeScores.length).toInt).unzip._1
 
   // Randomly cross trees here.
+  // For each tree in the top trees, randomly pick a second
+  // tree to cross with.
+  val pairs = topTrees map(tree => (tree,choice(topTrees)))
 
-  topTrees._1
+  // Cross the pairs of trees to produce kid trees. Then mutate
+  // the kids 'cause, you know, it's awesome.
+  val kids = pairs map(pair => pair._1.crossbreed(pair._2.root, probCross))
+  kids map(kid => kid.mutate(probMutate))
+
+  // join the parent with the kid trees and return that.
+  topTrees ++ kids
 }
 
 
