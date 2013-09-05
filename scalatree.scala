@@ -110,7 +110,7 @@ class Stree(
      */
     def scoreAgainstData(data: List[List[Any]]):Int = {
       val scores = for (v <- data) yield score(v)
-      scores.sum
+      (scores.sum / data.length).toInt
     }
 
     /**
@@ -118,7 +118,7 @@ class Stree(
      * of some parameters and the expected result.
      */
     def score(v: List[Any]):Int= {
-      val s = evaluate(v.dropRight(1)).asInstanceOf[Int]- v.last.asInstanceOf[Int]
+      val s = evaluate(v.dropRight(1)).asInstanceOf[Int] - v.last.asInstanceOf[Int]
       if (s>0) s else -s
     }
 
@@ -258,7 +258,7 @@ def makeForest(popsize: Int,
   prParam: Float = 0.5f,
   constFunc: ()=>Any=()=>util.Random.nextInt(100)
   ): List[Stree] = {
-    for (i <- (0 to popsize).toList) yield new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc)
+    for (i <- (0 to popsize-1).toList) yield new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc)
   }
 
 /**
