@@ -149,20 +149,20 @@ class Stree(
 	  stuff(util.Random.nextInt(stuff.length))
 
 
-		/**
-		 * Return a list of trees randomly generated from the given
-		 * parameters.
-		 */
-		def makeForest(popsize: Int,
-		  numParam: Int,
-		  funcList: List[Tfunc],
-		  maxDepth: Int = 5,
-		  prFunc: Float = 0.6f,
-		  prParam: Float = 0.5f,
-		  constFunc: ()=>Any=()=>util.Random.nextInt(100)
-		  ): List[Stree] = {
-		    for (i <- (0 to popsize-1).toList) yield new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc)
-		  }
+	/**
+	 * Return a list of trees randomly generated from the given
+	 * parameters.
+	 */
+	def makeForest(popsize: Int,
+	  numParam: Int,
+	  funcList: List[Tfunc],
+	  maxDepth: Int = 5,
+	  prFunc: Float = 0.6f,
+	  prParam: Float = 0.5f,
+	  constFunc: ()=>Any=()=>util.Random.nextInt(100)
+	  ): List[Stree] = {
+	    for (i <- (0 to popsize-1).toList) yield new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc)
+	  }
 		
 		/**
 		 * Return a list of tuples containing a tree from the forest and its score against some
@@ -202,10 +202,10 @@ class Stree(
 
 
 
-    /**
-* Recurses through the tree and randomly mutates
-* its subtrees.
-*/
+   /**
+		* Recurses through the tree and randomly mutates
+		* its subtrees.
+		*/
     def mutate(probMut: Float=0.15f){
       root = _mutate(root, probMut)
     }
@@ -229,74 +229,67 @@ class Stree(
     }
 
  
-/*
-* subtrees on this tree with subtrees from the other.
-*/
-    def crossbreed(otherroot: Node, probCross: Float=0.15f): Stree = {
-      var newroot = _crossbreed(root, otherroot, probCross)
-      new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc, newroot)
-    }
-
-    def _crossbreed(thisroot: Node, otherroot: Node, probCross: Float=0.15f, atroot: Boolean=true): Node = {
-      if ((!atroot)&& (util.Random.nextFloat() < probCross)) {
-        // Cross these trees
-        otherroot
-      } else {
-        // See about crossing the childrens, if any:
-        if (thisroot.isInstanceOf[Fnode] && otherroot.isInstanceOf[Fnode]) {
-          // Randomly replace this node's children with the other node's children.
-          thisroot.asInstanceOf[Fnode].children = for (child <- thisroot.asInstanceOf[Fnode].children)
-                     yield (_crossbreed(child, rdmSelectFrom(otherroot.asInstanceOf[Fnode].children),probCross,false))
-        }
-      // Return the current root, whether crossed or not.
-      thisroot
-      }
-    }
-
-    /**
-* Evaluates this source tree against a list of list containing parameters and their
-* expected output. Returns a score based on the tree's performance.
-*
-* data should be of the form:
-* ((x11,x12,x13...y1),
-* (x21,x22... y2),
-* ...
-* (xn1, xn2... yn))
-*/
-    def scoreAgainstData(data: List[List[Any]]):Int = {
-      val scores = for (v <- data) yield score(v)
-      (scores.sum / data.length).toInt
-    }
-
-    /**
-* Returns absolute differenc between the tree's evaluation
-* of some parameters and the expected result.
-*/
-    def score(v: List[Any]):Int= {
-      val s = evaluate(v.dropRight(1)).asInstanceOf[Int] - v.last.asInstanceOf[Int]
-      if (s>0) s else -s
-    }
-
-
-    def printToString(paramlist: List[Any] = List()) {
-      root.printToString(paramlist)
-    }
-
-    def evaluate(paramlist: List[Any]): Any = {
-      root.evaluate(paramlist)
-    }
-
-    def test(paramlist: List[Any]) {
-      printToString(paramlist)
-    }
-
-    
-    /**
-* Useful Utility Functions
-*/
-
-
+	/**
+	 * subtrees on this tree with subtrees from the other.
+	 */
+  def crossbreed(otherroot: Node, probCross: Float=0.15f): Stree = {
+    var newroot = _crossbreed(root, otherroot, probCross)
+    new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc, newroot)
   }
+
+  def _crossbreed(thisroot: Node, otherroot: Node, probCross: Float=0.15f, atroot: Boolean=true): Node = {
+    if ((!atroot)&& (util.Random.nextFloat() < probCross)) {
+      // Cross these trees
+      otherroot
+    } else {
+      // See about crossing the childrens, if any:
+      if (thisroot.isInstanceOf[Fnode] && otherroot.isInstanceOf[Fnode]) {
+        // Randomly replace this node's children with the other node's children.
+        thisroot.asInstanceOf[Fnode].children = for (child <- thisroot.asInstanceOf[Fnode].children)
+                   yield (_crossbreed(child, rdmSelectFrom(otherroot.asInstanceOf[Fnode].children),probCross,false))
+      }
+    // Return the current root, whether crossed or not.
+    thisroot
+    }
+  }
+
+ /**
+	* Evaluates this source tree against a list of list containing parameters and their
+	* expected output. Returns a score based on the tree's performance.
+	*
+	* data should be of the form:
+	* ((x11,x12,x13...y1),
+	* (x21,x22... y2),
+	* ...
+	* (xn1, xn2... yn))
+	*/
+  def scoreAgainstData(data: List[List[Any]]):Int = {
+    val scores = for (v <- data) yield score(v)
+    (scores.sum / data.length).toInt
+  }
+
+  /**
+	 * Returns absolute differenc between the tree's evaluation
+	 * of some parameters and the expected result.
+	 */
+  def score(v: List[Any]):Int= {
+    val s = evaluate(v.dropRight(1)).asInstanceOf[Int] - v.last.asInstanceOf[Int]
+    if (s>0) s else -s
+  }
+
+  def printToString(paramlist: List[Any] = List()) {
+    root.printToString(paramlist)
+  }
+
+  def evaluate(paramlist: List[Any]): Any = {
+    root.evaluate(paramlist)
+  }
+
+  def test(paramlist: List[Any]) {
+    printToString(paramlist)
+  }
+
+}
 
 
 
