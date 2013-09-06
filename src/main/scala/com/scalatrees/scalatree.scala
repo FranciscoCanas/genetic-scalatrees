@@ -1,10 +1,103 @@
 package com.scalatrees
 
+
 /**
-* Wrapper for a function that holds number of parameters
-* and name of the function as well as the function object.
-*/
-class Tfunc(val name: String, val numParam:Int, val function: List[Any]=>Any)
+ * Possible node representations:
+ * Fnode: Function node
+ * Pnode: Parameter node
+ * Cnode: Constant node
+ */
+abstract class Node() {
+  val spacer = " "
+  val noder =   "\\"
+  val stemmer = " |"
+
+  def printToString(paramlist: List[Any], indent: String=" ") {
+    print(indent)
+  }
+   def evaluate(paramlist: List[Any]): Any
+}
+
+/**
+ * A tree node that contains a function.
+ * TODO: Maybe use children a val?
+ */
+class Fnode(val func: Tfunc, var children: List[Node]) extends Node() {
+  
+  val name = func.name
+  val function = func.function
+
+  /**
+   * Recursively evaluate the children of this function,
+   * and evaluate this function to get the result.
+   */
+  def evaluate(paramlist: List[Any]): Any =
+   function(
+     for (child <- children)
+       yield child.asInstanceOf[Node].evaluate(paramlist))
+        
+  /**
+   * Prints the name of this function and recursively
+   * prints its children.
+   */
+  override def printToString(paramlist: List[Any], indent: String=" ") {
+    super.printToString(paramlist, indent)
+    println(noder + name + "=" + evaluate(paramlist))
+    for (child <- children.dropRight(1)) child.printToString(paramlist, indent + spacer * 2 + stemmer)
+    children.last.printToString(paramlist, indent + spacer * 4)
+  }
+
+}
+
+/**
+ * A tree node that holds a parameter: i.e, the
+ * index of the parameter, not its literal value.
+ */
+class Pnode(paramId: Int) extends Node() {
+
+	/**
+	 * Return the value of this parameter.
+	 */
+  def evaluate(paramlist: List[Any]): Any =
+    paramlist(paramId).asInstanceOf[Any]
+
+  /**
+   * Prints the parameter index and its value.
+   */
+  override def printToString(paramlist: List[Any], indent: String=" ") {
+    super.printToString(paramlist, indent)
+    println(noder + paramToString(paramId) + "=" + evaluate(paramlist))
+  }
+
+  def paramToString(id: Int): String = "p[" + id + "]"
+  
+}
+
+
+/**
+ *A tree node that holds a constant value.
+ */
+class Cnode(value: Any) extends Node() {
+
+  /**
+   * Return the value of this constant.
+   */
+  def evaluate(paramlist: List[Any]): Any = value
+
+  /**
+   * Prints the constant.
+   */
+  override def printToString(paramlist: List[Any], indent: String=" ") {
+    super.printToString(paramlist, indent)
+    println(noder + value)
+  }
+}
+
+/**
+ * Wrapper for a function that holds number of parameters
+ * and name of the function as well as the function object.
+ */
+class Tfunc(val name: String, val numParam: Int, val function: List[Any]=>Any)
 
 /**
 * This is a wrapper class for the tree-like source structure
@@ -20,18 +113,6 @@ class Stree(
   val constFunc: () => Any = () => util.Random.nextInt(100),
   var root: Node = null ) {
   
-  if (root==null) root = random_tree()
-  
-	/**
-	 * Return a randomly chosen element
-	 * from the list of stuff.
-	 */
-	def choice[A](stuff: List[A]): A = 
-	  stuff(util.Random.nextInt(stuff.length))
-
-  
-  
-
   /**
    * Generates a random tree using the given parameters.
    */
@@ -39,7 +120,7 @@ class Stree(
     val roll = util.Random.nextFloat()
 
     if (atroot || ((roll < prFunc) && (depth < maxDepth))) {
-      val newfunc = choice(funcList) // make a function node here, and recurse.
+      val newfunc = rdmSelectFrom(funcList) // make a function node here, and recurse.
 	
 	    var children = // Recusively create children subtrees.
 	      for (i <- 1 to newfunc.numParam)
@@ -56,6 +137,70 @@ class Stree(
 	    new Cnode(constFunc()) // Make a constant node.
 	  }
   }
+  
+  
+  if (root==null) root = random_tree()
+  
+	/**
+	 * Return a randomly chosen element
+	 * from the list of stuff.
+	 */
+	def rdmSelectFrom[A](stuff: List[A]): A = 
+	  stuff(util.Random.nextInt(stuff.length))
+
+
+		/**
+		 * Return a list of trees randomly generated from the given
+		 * parameters.
+		 */
+		def makeForest(popsize: Int,
+		  numParam: Int,
+		  funcList: List[Tfunc],
+		  maxDepth: Int = 5,
+		  prFunc: Float = 0.6f,
+		  prParam: Float = 0.5f,
+		  constFunc: ()=>Any=()=>util.Random.nextInt(100)
+		  ): List[Stree] = {
+		    for (i <- (0 to popsize-1).toList) yield new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc)
+		  }
+		
+		/**
+		 * Return a list of tuples containing a tree from the forest and its score against some
+		 * given data.
+		 */
+		def scoreForest(forest: List[Stree], data: List[List[Int]]): List[(Stree,Int)] = {
+		  forest.map((tree)=> (tree, tree.scoreAgainstData(data)))
+		}
+		
+		/**
+		 * Given a population of trees and some data, make a new generation of this population by:
+		 * 1 - scoring each tree against this data
+		 * 2 - removing a proportion, p, of the population
+		 * 3 - crossbreeding the remaining trees randomly to create a new population
+		 */
+		def generateGeneration(forest: List[Stree], data: List[List[Int]], propToPrune: Float=0.5f, probCross: Float=0.5f, probMutate: Float=0.25f): List[Stree] = {
+		
+		  // Make a list of trees sorted by increasing score.
+		  val sortedTreeScores = scoreForest(forest, data).sortBy(_._2)
+		  // Take the best propToPrune number of trees.
+		  val topTrees = sortedTreeScores.dropRight((propToPrune * sortedTreeScores.length).toInt).unzip._1
+		
+		  // Randomly cross trees here.
+		  // For each tree in the top trees, randomly pick a second
+		  // tree to cross with.
+		  val pairs = topTrees map(tree => (tree, rdmSelectFrom(topTrees)))
+		
+		  // Cross the pairs of trees to produce kid trees. Then mutate
+		  // the kids 'cause, you know, it's awesome.
+		  val kids = pairs map(pair => pair._1.crossbreed(pair._2.root, probCross))
+		  kids map(kid => kid.mutate(probMutate))
+		
+		  // join the parent with the kid trees and return that.
+		  topTrees ++ kids
+		}
+  
+
+
 
     /**
 * Recurses through the tree and randomly mutates
@@ -83,8 +228,8 @@ class Stree(
 
     }
 
-    /**
-* Recurses through this and an 'other' tree, randomly replaces
+ 
+/*
 * subtrees on this tree with subtrees from the other.
 */
     def crossbreed(otherroot: Node, probCross: Float=0.15f): Stree = {
@@ -101,7 +246,7 @@ class Stree(
         if (thisroot.isInstanceOf[Fnode] && otherroot.isInstanceOf[Fnode]) {
           // Randomly replace this node's children with the other node's children.
           thisroot.asInstanceOf[Fnode].children = for (child <- thisroot.asInstanceOf[Fnode].children)
-                     yield (_crossbreed(child, choice(otherroot.asInstanceOf[Fnode].children),probCross,false))
+                     yield (_crossbreed(child, rdmSelectFrom(otherroot.asInstanceOf[Fnode].children),probCross,false))
         }
       // Return the current root, whether crossed or not.
       thisroot
@@ -144,182 +289,23 @@ class Stree(
     def test(paramlist: List[Any]) {
       printToString(paramlist)
     }
-  }
 
-/**
-* Represents a particular object in the source tree: could be
-* a function, a parameter, or a constant.
-*/
-abstract class Node() {
-  val spacer = " "
-  val noder =   "\\"
-  val stemmer = " |"
-
-  def printToString(paramlist: List[Any], indent: String=" ") {
-    print(indent)
-  }
-   def evaluate(paramlist: List[Any]): Any
-  }
-
-
-
-/**
-* A tree node that contains a function.
-*/
-class Fnode(val func: Tfunc, var children: List[Node]) extends Node() {
-  val name = func.name
-  val function = func.function
-
-  /**
-* Recursively evaluate the children of this function,
-* and evaluate this function to get the result.
-*/
-   def evaluate(paramlist: List[Any]): Any =
-    function(
-      for (child <- children)
-        yield child.asInstanceOf[Node].evaluate(paramlist)
-           )
-  /**
-<<<<<<< HEAD:scalatree.scala
-   * Prints the name of this function and recusively
-   * prints its children.
-   */
-  override def printToString(paramlist: List[Any], indent: String=" ") {
-=======
-* Prints the name of this function and recusively
-* prints its children.
-*/
-  override def printToString(paramlist: List[Any], indent: Int=0) {
->>>>>>> Restructuring files:src/main/scala/com/scalatrees/scalatree.scala
-    super.printToString(paramlist, indent)
-    println(noder + name + "=" + evaluate(paramlist))
-    for (child <- children.dropRight(1)) child.printToString(paramlist, indent + spacer * 2 + stemmer)
-    children.last.printToString(paramlist, indent + spacer * 4)
-  }
-
-}
-
-/**
-* A tree node that holds a parameter: ie, the
-* index of the parameter, not its literal value.
-*/
-class Pnode(paramid: Int) extends Node() {
-
-  /**
-* Return the value of this parameter.
-*/
-  def evaluate(paramlist: List[Any]): Any =
-    paramlist(paramid).asInstanceOf[Any]
-
-  /**
-<<<<<<< HEAD:scalatree.scala
-   * Prints the parameter index and its value.
-   */
-  override def printToString(paramlist: List[Any], indent: String=" ") {
-=======
-* Prints the parameter index and its value.
-*/
-  override def printToString(paramlist: List[Any], indent: Int = 0) {
->>>>>>> Restructuring files:src/main/scala/com/scalatrees/scalatree.scala
-    super.printToString(paramlist, indent)
-    println(noder + paramToString(paramid) + "=" + evaluate(paramlist))
-  }
-
-  def paramToString(id: Int): String = {
-    "p[" + id + "]"
-  }
-}
-
-/**
-*A tree node that holds a constant value.
-*/
-class Cnode(value: Any) extends Node() {
-
-  /**
-* Return the value of this constant.
-*/
-  def evaluate(paramlist: List[Any]): Any =
-    value
-
-  /**
-<<<<<<< HEAD:scalatree.scala
-   * Prints the constant.
-   */
-  override def printToString(paramlist: List[Any], indent: String=" ") {
-=======
-* Prints the constant.
-*/
-  override def printToString(paramlist: List[Any], indent: Int = 0) {
->>>>>>> Restructuring files:src/main/scala/com/scalatrees/scalatree.scala
-    super.printToString(paramlist, indent)
-    println(noder + value)
-  }
-}
-
-/**
+    
+    /**
 * Useful Utility Functions
 */
 
-<<<<<<< HEAD:scalatree.scala
-/**
- * Return a randomly chosen element
- * from the list of stuff.
- */
-def choice[A](stuff: List[A]): A = {
-  stuff(util.Random.nextInt(stuff.length))
 
-}
-
-/**
- * Return a list of trees randomly generated from the given
- * parameters.
- */
-def makeForest(popsize: Int,
-  numParam: Int,
-  funcList: List[Tfunc],
-  maxDepth: Int = 5,
-  prFunc: Float = 0.6f,
-  prParam: Float = 0.5f,
-  constFunc: ()=>Any=()=>util.Random.nextInt(100)
-  ): List[Stree] = {
-    for (i <- (0 to popsize-1).toList) yield new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc)
   }
 
-/**
- * Return a list of tuples containing a tree from the forest and its score against some
- * given data.
- */
-def scoreForest(forest: List[Stree], data: List[List[Int]]): List[(Stree,Int)] = {
-  forest.map((tree)=> (tree, tree.scoreAgainstData(data)))
-}
 
-/**
- * Given a population of trees and some data, make a new generation of this population by:
- * 1 - scoring each tree against this data
- * 2 - removing a proportion, p, of the population
- * 3 - crossbreeding the remaining trees randomly to create a new population
- */
-def generateGeneration(forest: List[Stree], data: List[List[Int]], propToPrune: Float=0.5f, probCross: Float=0.5f, probMutate: Float=0.25f): List[Stree] = {
 
-  // Make a list of trees sorted by increasing score.
-  val sortedTreeScores = scoreForest(forest, data).sortBy(_._2)
-  // Take the best propToPrune number of trees.
-  val topTrees = sortedTreeScores.dropRight((propToPrune * sortedTreeScores.length).toInt).unzip._1
 
-  // Randomly cross trees here.
-  // For each tree in the top trees, randomly pick a second
-  // tree to cross with.
-  val pairs = topTrees map(tree => (tree,choice(topTrees)))
 
-  // Cross the pairs of trees to produce kid trees. Then mutate
-  // the kids 'cause, you know, it's awesome.
-  val kids = pairs map(pair => pair._1.crossbreed(pair._2.root, probCross))
-  kids map(kid => kid.mutate(probMutate))
 
-  // join the parent with the kid trees and return that.
-  topTrees ++ kids
-}
 
-}
-=======
->>>>>>> Restructuring files:src/main/scala/com/scalatrees/scalatree.scala
+
+
+
+
+

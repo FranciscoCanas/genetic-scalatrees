@@ -45,10 +45,11 @@ object treeTests {
   val kid=y.crossbreed(t.root, 0.5f)
   println("Tree kid:")
   kid.printToString(pars)
-
+ /*
   println("Scoring Tree kid Against Data:")
   println(kid.scoreAgainstData(data))
 
+ 
   println("Making Forest")
   val forest = makeForest(200,3,flist,constFunc=()=>util.Random.nextInt(10))
   println("Evolving Forest")
@@ -76,7 +77,7 @@ object treeTests {
         thisBestWorst
       }
 
-      if (numgens <= 1) newBestWorst else  evolve(newgen, numgens-1, data, gen+1, newBestWorst)
+      if (numgens <= 1) newBestWorst else  evolve(newgen, numgens-1, data, gen+1, newBestWorst)*/
   }
 
   def showStats(f: List[(Stree,Int)], gen: Int=1): ((Stree,Int),(Stree,Int)) = {
