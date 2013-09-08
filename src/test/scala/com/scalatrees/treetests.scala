@@ -34,7 +34,8 @@ object treeTests {
   //val tfunc_gt=new Tfunc("gt",2,(paramlist: List[Any])=>is_greater_base(paramlist))
   val tfunc_get = Function.gtr(2)
   //val flist = List[Tfunc](tfunc_if,tfunc_gt,tfunc_add,tfunc_sub, tfunc_mul)
-  val flist = List[Tfunc[AnyVal]](tfunc_add, tfunc_sub)
+  //val flist = List[Tfunc[AnyVal]](tfunc_add, tfunc_sub)
+  val flist = List[Tfunc](tfunc_add, tfunc_sub)
   val pars = List[AnyVal](1,3,2)
 //3, 5 instead of 1,1
   val t = new Stree(1, flist, 1, 0.5f, 0.5f)
