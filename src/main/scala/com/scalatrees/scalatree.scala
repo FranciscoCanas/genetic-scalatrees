@@ -1,153 +1,139 @@
 package com.scalatrees
 
-
-/**
- * Possible node representations:
- * Fnode: Function node
- * Pnode: Parameter node
- * Cnode: Constant node
- */
-abstract class Node() {
-  val spacer = " "
-  val noder =   "\\"
-  val stemmer = " |"
-
-  def printToString(paramlist: List[Any], indent: String=" ") {
-    print(indent)
-  }
-   def evaluate(paramlist: List[Any]): Any
-}
-
-/**
- * A tree node that contains a function.
- * TODO: Maybe use children a val?
- */
-class Fnode(val func: Tfunc, var children: List[Node]) extends Node() {
-  
-  val name = func.name
-  val function = func.function
-
-  /**
-   * Recursively evaluate the children of this function,
-   * and evaluate this function to get the result.
-   */
-  def evaluate(paramlist: List[Any]): Any =
-   function(
-     for (child <- children)
-       yield child.asInstanceOf[Node].evaluate(paramlist))
-        
-  /**
-   * Prints the name of this function and recursively
-   * prints its children.
-   */
-  override def printToString(paramlist: List[Any], indent: String=" ") {
-    super.printToString(paramlist, indent)
-    println(noder + name + "=" + evaluate(paramlist))
-    for (child <- children.dropRight(1)) child.printToString(paramlist, indent + spacer * 2 + stemmer)
-    children.last.printToString(paramlist, indent + spacer * 4)
-  }
-
-}
-
-/**
- * A tree node that holds a parameter: i.e, the
- * index of the parameter, not its literal value.
- */
-class Pnode(paramId: Int) extends Node() {
-
-	/**
-	 * Return the value of this parameter.
-	 */
-  def evaluate(paramlist: List[Any]): Any =
-    paramlist(paramId).asInstanceOf[Any]
-
-  /**
-   * Prints the parameter index and its value.
-   */
-  override def printToString(paramlist: List[Any], indent: String=" ") {
-    super.printToString(paramlist, indent)
-    println(noder + paramToString(paramId) + "=" + evaluate(paramlist))
-  }
-
-  def paramToString(id: Int): String = "p[" + id + "]"
-  
-}
-
-
-/**
- *A tree node that holds a constant value.
- */
-class Cnode(value: Any) extends Node() {
-
-  /**
-   * Return the value of this constant.
-   */
-  def evaluate(paramlist: List[Any]): Any = value
-
-  /**
-   * Prints the constant.
-   */
-  override def printToString(paramlist: List[Any], indent: String=" ") {
-    super.printToString(paramlist, indent)
-    println(noder + value)
-  }
-}
-
 /**
  * Wrapper for a function that holds number of parameters
  * and name of the function as well as the function object.
+ * 
+ * TODO: Probably want to create a factory out of this...
  */
-class Tfunc(val name: String, val numParam: Int, val function: List[Any]=>Any)
+
+trait PolyFunction1[F[_]] {
+  def apply[T](t : F[T]) : T
+}
+
+abstract class Tfunc[+A] extends {
+  val name: String
+ 	val numParam: Int
+
+ 	//def apply[A](f: A => A, a: A): A = f(a)
+ 	//def function[B >: A](params: List[B]): B
+ 	//val function: [B >: A] List[B] => B
+ 	//Scala values are monomorphic ..... doesn't seeem possible.....
+ 	val function: List[A] => A
+ 	//(x: Int) => x + 1
+ 	//def cons[B >: A](v: B): List[B]
+}
+ 
+class Function[A <: AnyVal](val name: String, val numParam:Int, val function: List[A] => A) extends Tfunc[A]
+
+object Function {
+  
+	def min_base(paramlist: List[Int]): Int = {
+	  val x = paramlist(0)
+	  val y = paramlist(0)
+	  if (x>=y) x else y
+	}
+	def abs_base(paramlist: List[Int]): Int = {
+	  val x = paramlist(0)
+	  if (x>0) x else -x
+	}
+  
+  def rand_base(paramlist: List[Int]): Int = {
+	  val x = abs_base(paramlist)
+	  util.Random.nextInt(min_base(List[Int](x,1)))
+  }
+  
+  def if_base(paramlist: List[AnyVal]): AnyVal = {
+	  if (paramlist(0).asInstanceOf[Int] > 0) {
+	    paramlist(1)
+	  } else {
+	    paramlist(2)
+	  }
+	}
+  
+  def is_greater_base(paramlist: List[AnyVal]): AnyVal = {
+	  if (paramlist(0).asInstanceOf[Int] > paramlist(1).asInstanceOf[Int]) {
+	    return 1
+	  } else {
+	    return 0
+	  }
+	}
+  
+  def add(numParam: Int) =
+  	new Function("Add", numParam, (params: List[Int])=>params(0) + params(1))
+  
+  def sub(numParam: Int) =
+  	new Function("Sub", numParam, (params: List[Int])=>params(0) - params(1))
+
+  def mul(numParam: Int) =
+  	new Function("Mul", numParam, (params: List[Int])=>params(0) * params(1))
+  
+  def pow(numParam: Int) =
+  	new Function("Pow", numParam, (params: List[Double]) => scala.math.pow(params(0), params(1)))
+  
+  def rand(numParam: Int) =
+    new Function("Rand", numParam, (paramlist: List[Int])=>rand_base(paramlist))
+  
+  def mod(numParam: Int) =
+  	new Function("Mod", numParam, (paramlist: List[Int])=>paramlist(0) % paramlist(1))
+  
+  def iff(numParam: Int) =
+  	new Function("Iff", numParam, (paramlist: List[AnyVal])=>if_base(paramlist))
+  
+  def gtr(numParam: Int) =
+    new Function("Gtr", numParam, (paramlist: List[AnyVal])=>is_greater_base(paramlist))
+}
 
 /**
-* This is a wrapper class for the tree-like source structure
-* that keeps track of the parameters used in creating
-* the tree.
-*/
+	* This is a wrapper class for the tree-like source structure
+	* that keeps track of the parameters used in creating
+	* the tree.
+	*/
 class Stree(
   val numParam: Int,
-  val funcList: List[Tfunc],
+  val funcList: List[Tfunc[AnyVal]],
   val maxDepth: Int = 5,
   val prFunc: Float = 0.6f,
   val prParam: Float = 0.5f,
-  val constFunc: () => Any = () => util.Random.nextInt(100),
-  var root: Node = null ) {
-  
-  /**
-   * Generates a random tree using the given parameters.
-   */
-  def random_tree(depth: Int=0, atroot: Boolean=true): Node = {
-    val roll = util.Random.nextFloat()
-
-    if (atroot || ((roll < prFunc) && (depth < maxDepth))) {
-      val newfunc = rdmSelectFrom(funcList) // make a function node here, and recurse.
-	
-	    var children = // Recusively create children subtrees.
-	      for (i <- 1 to newfunc.numParam)
-	      	yield random_tree(depth+1, false)
-	
-	    // Wrap it up in an fnode and return.
-	    new Fnode(newfunc, children.toList.asInstanceOf[List[Node]])
-
-    } 
-    else if (roll < prParam) {
-	    new Pnode(util.Random.nextInt(numParam)) // Make a parameter node.
-	  } 
-    else {
-	    new Cnode(constFunc()) // Make a constant node.
-	  }
-  }
-  
+  //val constFunc: () => Any = () => util.Random.nextInt(100),
+  val constFunc: () => AnyVal = () => 13,
+  var root: Node = null,
+  val r: util.Random = new util.Random(1)) {
   
   if (root==null) root = random_tree()
+  
+  
+
+  /**
+   * numParam = 1
+   * funcList = List[Tfunc](tfunc_add, tfunc_sub)
+   * maxDepth = 1
+   * prFunc   = 0.5f
+   * prParam  =  0.5f
+   * root 	  = null
+   */
+  
   
 	/**
 	 * Return a randomly chosen element
 	 * from the list of stuff.
 	 */
 	def rdmSelectFrom[A](stuff: List[A]): A = 
-	  stuff(util.Random.nextInt(stuff.length))
+	  stuff(r.nextInt(stuff.length))
 
+	/**
+   * Generates a random tree using the given parameters.
+   */
+  def random_tree(depth: Int=0, atroot: Boolean=true): Node = {
+    val roll = r.nextFloat()
+    val newfunc = rdmSelectFrom(funcList)
+    
+    if (atroot || ((roll < prFunc) && (depth < maxDepth)))
+    	Node.function(newfunc, List.fill(newfunc.numParam)(random_tree(depth+1, false)))   	
+    else if (roll < prParam)	Node.parameter(r.nextInt(numParam)) 
+    else 	  								 	Node.constant(constFunc()) 
+  }
+  
 
 	/**
 	 * Return a list of trees randomly generated from the given
@@ -155,11 +141,11 @@ class Stree(
 	 */
 	def makeForest(popsize: Int,
 	  numParam: Int,
-	  funcList: List[Tfunc],
+	  funcList: List[Tfunc[AnyVal]],
 	  maxDepth: Int = 5,
 	  prFunc: Float = 0.6f,
 	  prParam: Float = 0.5f,
-	  constFunc: ()=>Any=()=>util.Random.nextInt(100)
+	  constFunc: ()=>AnyVal=()=>util.Random.nextInt(100)
 	  ): List[Stree] = {
 	    for (i <- (0 to popsize-1).toList) yield new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc)
 	  }
@@ -216,9 +202,9 @@ class Stree(
         random_tree(depth)
       } else {
         // If this is a function node:
-        if (subtree.isInstanceOf[Fnode]) {
+        if (subtree.isFunction) {
           // Mutate its children:
-          subtree.asInstanceOf[Fnode].children = for (child <- subtree.asInstanceOf[Fnode].children)
+          subtree.asInstanceOf[Node.Fnode].children = for (child <- subtree.asInstanceOf[Node.Fnode].children)
                             yield (_mutate(child, probMut, depth+1))
 
         }
@@ -243,10 +229,10 @@ class Stree(
       otherroot
     } else {
       // See about crossing the childrens, if any:
-      if (thisroot.isInstanceOf[Fnode] && otherroot.isInstanceOf[Fnode]) {
+      if (thisroot.isFunction && otherroot.isInstanceOf[Node.Fnode]) {
         // Randomly replace this node's children with the other node's children.
-        thisroot.asInstanceOf[Fnode].children = for (child <- thisroot.asInstanceOf[Fnode].children)
-                   yield (_crossbreed(child, rdmSelectFrom(otherroot.asInstanceOf[Fnode].children),probCross,false))
+        thisroot.asInstanceOf[Node.Fnode].children = for (child <- thisroot.asInstanceOf[Node.Fnode].children)
+                   yield (_crossbreed(child, rdmSelectFrom(otherroot.asInstanceOf[Node.Fnode].children),probCross,false))
       }
     // Return the current root, whether crossed or not.
     thisroot
@@ -263,7 +249,7 @@ class Stree(
 	* ...
 	* (xn1, xn2... yn))
 	*/
-  def scoreAgainstData(data: List[List[Any]]):Int = {
+  def scoreAgainstData(data: List[List[AnyVal]]):Int = {
     val scores = for (v <- data) yield score(v)
     (scores.sum / data.length).toInt
   }
@@ -272,25 +258,34 @@ class Stree(
 	 * Returns absolute differenc between the tree's evaluation
 	 * of some parameters and the expected result.
 	 */
-  def score(v: List[Any]):Int= {
+  def score(v: List[AnyVal]):Int= {
     val s = evaluate(v.dropRight(1)).asInstanceOf[Int] - v.last.asInstanceOf[Int]
     if (s>0) s else -s
   }
 
-  def printToString(paramlist: List[Any] = List()) {
+  def printToString(paramlist: List[AnyVal] = List()) {
     root.printToString(paramlist)
   }
 
-  def evaluate(paramlist: List[Any]): Any = {
+  def evaluate(paramlist: List[AnyVal]): AnyVal = {
     root.evaluate(paramlist)
   }
 
-  def test(paramlist: List[Any]) {
+  def test(paramlist: List[AnyVal]) {
     printToString(paramlist)
   }
 
 }
 
+object Stree{
+  //val tfunc_add=new Tfunc("add", 2, (paramlist: List[Any])=>paramlist(0).asInstanceOf[Int] + paramlist(1).asInstanceOf[Int])
+  //val tfunc_sub=new Tfunc("sub", 2, (paramlist: List[Any])=>paramlist(0).asInstanceOf[Int] -  paramlist(1).asInstanceOf[Int])
+  val tfunc_add = Function.add(2)
+  val tfunc_sub = Function.sub(2)
+  val flist = List[Tfunc[AnyVal]](tfunc_add, tfunc_sub)
+  val testTree = new Stree(1, flist, 1, 0.5f, 0.5f)
+  def random_treetest(depth: Int=0, atroot: Boolean=true): Node = testTree.random_tree(depth, atroot)
+}
 
 
 
