@@ -1,88 +1,24 @@
 package com.scalatrees
 
-/** THINGS MARKED WITH FAIL ARE FAILED GENERALIZATION ATTEMPTS
- * Possible node representations:
- * Fnode: Function node
+/** Node Types
  * 
- * Pnode: Parameter node
- * 				A tree node that holds a parameter
- *     		The index of the parameter, not its literal value
- *       
- * Cnode: Constant node
- * 			  A tree node that holds a constant value.
+ * CNode: Constant node, holds a constant value, can return its value
+ * FNode: Function node, holds a functions and nodes as parameters, can return its evaluated function
  */
-abstract class Node {
-  val spacer = " "
-  val noder =   "\\"
-  val stemmer = " |"
-  
-  /**
-   * Evaluated your node.
-   * Functions nodes will generate the result to your function
-   * Parameter nodes will return the parameter it holds
-   * Constant nodes will return its constant value
-   */
-  def evaluate(paramlist: List[AnyVal]): AnyVal
-  
-  def isFunction: Boolean 	= false
-  def isConstant: Boolean		= false
-  def isParameter: Boolean	= false
-  def printToString(paramlist: List[AnyVal], indent: String=" ") { print(indent) }
-}
+sealed trait Node { def evaluate: Double }
+case class CNode(value: Double) extends Node() { def evaluate: Double = value }
+case class FNode(func: Operation, val children: List[Node]) extends Node {  def evaluate: Double = func.eval(children map {_.evaluate} ) }
 
-object Node {
+/** Node Operations */
+sealed trait Operation  { def eval(node: List[Double]): Double }
+case object Add extends Operation      { def eval(params: List[Double]) = params.sum                   }
+case object Mod extends Operation      { def eval(params: List[Double]) = params.reduce(_%_)           }
+case object Min extends Operation      { def eval(params: List[Double]) = params.min                   }
+case object Max extends Operation      { def eval(params: List[Double]) = params.max                   }
+case object Power extends Operation    { def eval(params: List[Double]) = params.reduce(math.pow(_, _))}
+case object Subtract extends Operation { def eval(params: List[Double]) = params.reduce(_-_)           }
+case object Multiply extends Operation { def eval(params: List[Double]) = params.reduce(_*_)           }
+//Absolute      ?
+//GreaterThan   ?
+//LessThen      ?
 
-	//FAIL: class Fnode(func: Tfunc[AnyVal], var children: List[Node]) extends Node {
-  class Fnode(func: Tfunc, var children: List[Node]) extends Node {
-	  override def isFunction: Boolean 	= true
-	  val name 		 = func.name
-
-	  def evaluate(paramlist: List[AnyVal]): AnyVal =
-	   func.function(
-	     for (child <- children)
-	       yield child.asInstanceOf[Node].evaluate(paramlist))
-	        
-
-	  override def printToString(paramlist: List[AnyVal], indent: String=" ") {
-	    super.printToString(paramlist, indent)
-	    println(noder + name + "=" + evaluate(paramlist))
-	    for (child <- children.dropRight(1)) child.printToString(paramlist, indent + spacer * 2 + stemmer)
-	    children.last.printToString(paramlist, indent + spacer * 4)
-	  }
-	}
-	
-	private class Pnode(paramId: Int) extends Node() { 
-	  override def isParameter: Boolean = true
-	  
-	  def evaluate(paramlist: List[AnyVal]): AnyVal =
-	    paramlist(paramId).asInstanceOf[AnyVal]
-
-	  def paramToString(id: Int): String = "p[" + id + "]"
-	  
-	  override def printToString(paramlist: List[AnyVal], indent: String=" ") {
-	    super.printToString(paramlist, indent)
-	    println(noder + paramToString(paramId) + "=" + evaluate(paramlist))
-	  }
-	}
-
-	private class Cnode(value: AnyVal) extends Node() {
-	  override def isConstant: Boolean = true
-	  
-	  def evaluate(paramlist: List[AnyVal]): AnyVal = value
-	  
-	  override def printToString(paramlist: List[AnyVal], indent: String=" ") {
-	    super.printToString(paramlist, indent)
-	    println(noder + value)
-	  }
-	}
-	
-  //FAIL: def function(func: Tfunc[AnyVal], children: List[Node]): Node =
-	def function(func: Tfunc, children: List[Node]): Node =
-    new Fnode(func, children)
-	  
-  def parameter(paramId: Int): Node =
-    new Pnode(paramId)
-  
-  def constant(value: AnyVal): Node =
-    new Cnode(value)
-}

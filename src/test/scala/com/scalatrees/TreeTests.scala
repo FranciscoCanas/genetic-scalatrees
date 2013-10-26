@@ -5,47 +5,32 @@ package com.scalatrees
 object treeTests {
   def main(args: Array[String]) {
 
-    val data = List[List[Int]](
-        List[Int](1,2,3,6),
-        List[Int](2,3,4,9),
-        List[Int](3,4,5,12),
-        List[Int](4,5,6,15)
-      )
+  val data = List[List[Int]](
+      List[Int](1,2,3,6),
+      List[Int](2,3,4,9),
+      List[Int](3,4,5,12),
+      List[Int](4,5,6,15)
+    )
 
-  /**d
-   * Some common functions wrapped in tfuncs for testing.
-   **/
-  val tfunc_add = Function.add(2)
-  //val tfunc_add=new Tfunc("add", 2, (paramlist: List[Any])=>paramlist(0).asInstanceOf[Int] + paramlist(1).asInstanceOf[Int])
-  val tfunc_sub = Function.sub(2)
-  //val tfunc_sub=new Tfunc("sub", 2, (paramlist: List[Any])=>paramlist(0).asInstanceOf[Int] -  paramlist(1).asInstanceOf[Int])
-  //val tfunc_mul=new Tfunc("mul", 2, (paramlist: List[Any])=>paramlist(0).asInstanceOf[Int] * paramlist(1).asInstanceOf[Int])
-  val tfunc_mul = Function.mul(2)
-  //val tfunc_pow=new Tfunc("pow", 2, (paramlist: List[Any])=>scala.math.pow(paramlist(0).asInstanceOf[Int],paramlist(1)).asInstanceOf[Int])
+  val operations = List(Add, Subtract)
+  val testTree = new NodeTree(operations, 2, 2, 0.5f, randomGenerator = new util.Random(5))
+  println(testTree)
+  println(testTree.score)
   
-  // val tfunc_rand=new Tfunc("rand", 1, (paramlist: List[Any])=>rand_base(paramlist))
-  val tfunc_rand = Function.rand(1) 
-  //val tfunc_mod=new Tfunc("mod", 2, (paramlist: List[Any])=>paramlist(0).asInstanceOf[Int] % paramlist(1).asInstanceOf[Int])
-  val tfunc_mod = Function.mod(2)
-  
-  //val tfunc_if=new Tfunc("if",3,(paramlist: List[Any])=>if_base(paramlist))
-  val tfunc_if = Function.iff(3)
-  
-  //val tfunc_gt=new Tfunc("gt",2,(paramlist: List[Any])=>is_greater_base(paramlist))
-  val tfunc_get = Function.gtr(2)
-  //val flist = List[Tfunc](tfunc_if,tfunc_gt,tfunc_add,tfunc_sub, tfunc_mul)
-  //val flist = List[Tfunc[AnyVal]](tfunc_add, tfunc_sub)
-  val flist = List[Tfunc](tfunc_add, tfunc_sub)
-  val pars = List[AnyVal](1,3,2)
-//3, 5 instead of 1,1
-  val t = new Stree(1, flist, 1, 0.5f, 0.5f)
-  //val y = new Stree(1, flist, 1, 0.5f, 0.5f)
 
-  val test = Stree.random_treetest(1, true)
+  val forest2 = new NodeForest(3, operations, 2, 2, 0.5f, randomGenerator = new util.Random(5))
+  println( forest2 )
+  println( forest2.scoreForest )
+  
+  
+ /*
+  val test = Stree.random_treetest(1)
   test.printToString(pars)
   println("Creating Random Trees:")
   println("Tree T:")
   t.printToString(pars)
+  * 
+  */
   /*
   println("Mutating Tree T: ")
   t.mutate(0.5f)
@@ -94,7 +79,7 @@ object treeTests {
       if (numgens <= 1) newBestWorst else  evolve(newgen, numgens-1, data, gen+1, newBestWorst)*/
   }
 
-  def showStats(f: List[(Stree,Int)], gen: Int=1): ((Stree,Int),(Stree,Int)) = {
+  def showStats(f: List[(NodeTree,Int)], gen: Int=1): ((NodeTree,Int),(NodeTree,Int)) = {
     val sorted = f.sortBy(_._2)
     val best = sorted.head
     val worst = sorted.last
