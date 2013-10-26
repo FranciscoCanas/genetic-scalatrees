@@ -5,13 +5,11 @@ package com.scalatrees
 	* that keeps track of the parameters used in creating
 	* the tree.
 	*/
-class NodeTree( //Basically creates a Node.....
-  val funcList: List[Operation],                    // +
-  val maxDepth: Int = 5,                            // -
-  val prFunc: Float = 0.6f,                         // .5
-  val prParam: Float = 0.5f,                        // .5
-  val constFunc: () => AnyVal = () => 13,           // 13
-  //var root: Node = null,                            //random_tree()
+class NodeTree(
+  val funcList: List[Operation], 
+  val maxDepth: Int = 5,
+  val prFunc: Float = 0.5f,                        
+  val prParam: Float = 0.5f,
   val randomGenerator: util.Random = new util.Random()) {      
   
   val root = randomTree()
@@ -27,9 +25,7 @@ class NodeTree( //Basically creates a Node.....
 	def rdmSelectFrom[A](stuff: List[A]): A = 
 	  stuff(randomGenerator.nextInt(stuff.length))
 
-	/**
-   * Generates a random tree using the given parameters.
-   */
+	/** Generates a random tree using the given parameters. */
   def randomTree(currentDepth: Int = 0): Node = {
     lazy val newFunc = rdmSelectFrom(funcList)
     if (currentDepth == 0 || ((randomGenerator.nextFloat() < prFunc) && (currentDepth < maxDepth)))                  
