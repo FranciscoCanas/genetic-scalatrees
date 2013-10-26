@@ -13,21 +13,17 @@ object treeTests {
     )
 
   val operations = List(Add, Subtract)
-  /**d
-   * Some common functions wrapped in tfuncs for testing.
-   
-  val flist = List[Tfunc](tfunc_add, tfunc_sub)
-  val pars = List[AnyVal](1,3,2)
-  * 
-  */
-//3, 5 instead of 1,1
-  val testTree = new NodeTree(operations, 2, 0.5f, 0.5f, randomGenerator = new util.Random(5))
+  val testTree = new NodeTree(operations, 2, 2, 0.5f, randomGenerator = new util.Random(5))
   println(testTree)
+  println(testTree.score)
   
-  
-  //val y = new Stree(1, flist, 1, 0.5f, 0.5f)
 
-    /*
+  val forest2 = new NodeForest(3, operations, 2, 2, 0.5f, randomGenerator = new util.Random(5))
+  println( forest2 )
+  println( forest2.scoreForest )
+  
+  
+ /*
   val test = Stree.random_treetest(1)
   test.printToString(pars)
   println("Creating Random Trees:")

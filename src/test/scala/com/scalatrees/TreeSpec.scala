@@ -19,6 +19,7 @@ class TreeSpecextends extends Specification { def is =                          
                                                                                   """
   val FNode2 = FNode(Add,List(CNode(1), CNode(1)))
   val FNodeDouble22 = FNode(Add,List(CNode(1.1), CNode(1.1)))
+  
   def add1 = FNode2.evaluate === 2
   def add2 = FNode(Add,List(CNode(1), FNode2)).evaluate === 3
   def add3 = FNode(Add,List(FNode2, CNode(1))).evaluate === 3

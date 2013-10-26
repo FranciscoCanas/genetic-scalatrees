@@ -1,64 +1,62 @@
 package com.scalatrees
 
-/**
-	* This is a wrapper class for the tree-like source structure
-	* that keeps track of the parameters used in creating
-	* the tree.
-	*/
 class NodeTree(
-  val funcList: List[Operation], 
+  val funcList: List[Operation],
+  val numParam: Int = 2,
   val maxDepth: Int = 5,
   val prFunc: Float = 0.5f,                        
-  val prParam: Float = 0.5f,
   val randomGenerator: util.Random = new util.Random()) {      
   
   val root = randomTree()
   
-  override def toString = {
-    root.toString() + "\n" +
-    root.evaluate
-  }
-	/**
-	 * Return a randomly chosen element
-	 * from the list of stuff.
-	 */
+	/** Return a randomly chosen element from the list of stuff. */
 	def rdmSelectFrom[A](stuff: List[A]): A = 
 	  stuff(randomGenerator.nextInt(stuff.length))
 
 	/** Generates a random tree using the given parameters. */
   def randomTree(currentDepth: Int = 0): Node = {
     lazy val newFunc = rdmSelectFrom(funcList)
-    if (currentDepth == 0 || ((randomGenerator.nextFloat() < prFunc) && (currentDepth < maxDepth)))                  
+    if (currentDepth == 0 || 
+    ((randomGenerator.nextFloat() < prFunc) && (currentDepth < maxDepth)))                  
     	FNode(newFunc, List.fill(2)(randomTree(currentDepth+1)))        
     else
       CNode(randomGenerator.nextInt(10))
   }
   
+  def score: Double = root.evaluate
+  override def toString = { root.toString() }
+}
 
-	/**
-	 * Return a list of trees randomly generated from the given
-	 * parameters.
-	 
-	def makeForest(popsize: Int,
-	  numParam: Int,
-	  funcList: List[Operation],
-	  //funcList: List[Tfunc[AnyVal]],
-	  maxDepth: Int = 5,
-	  prFunc: Float = 0.6f,
-	  prParam: Float = 0.5f,
-	  constFunc: ()=>AnyVal=()=>util.Random.nextInt(100)
-	  ): List[Stree] = {
-	    for (i <- (0 to popsize-1).toList) yield new Stree(numParam, funcList, maxDepth, prFunc, prParam, constFunc)
-	  }*/
-		
-		/**
-		 * Return a list of tuples containing a tree from the forest and its score against some
-		 * given data.
-		
-		def scoreForest(forest: List[Stree], data: List[List[Int]]): List[(Stree,Int)] = {
-		  forest.map((tree)=> (tree, tree.scoreAgainstData(data)))
-		} */
-		
+class NodeForest( 
+  popSize: Int,
+  funcList: List[Operation],
+  numParam: Int =2,
+  maxDepth: Int = 5,
+  prFunc: Float = 0.5f,
+  randomGenerator: util.Random = new util.Random()){
+ 
+  val forest = List.fill(popSize)(new NodeTree(funcList, numParam, maxDepth, prFunc, randomGenerator))
+  
+  def rdmSelectFrom[A](stuff: List[A]): A = 
+    stuff(randomGenerator.nextInt(stuff.length))
+    
+  /** Return a list of tuples containing a tree from the forest and its score against some given data. */
+  def scoreForest: List[(NodeTree, Double)] = forest
+    .map (tree => (tree, tree.score))     
+    .sortBy(- _._2)                       //Sort in descending order
+  
+  def generateGeneration(deathRate: Float = 0.5f): NodeForest = {
+    val mates = forest map { tree => (tree, rdmSelectFrom(forest)) }
+    val forestStats = this.scoreForest
+    this
+  }
+  override def toString = forest map ("\n" + _.toString) toString
+    
+}
+
+	  
+
+
 		/**
 		 * Given a population of trees and some data, make a new generation of this population by:
 		 * 1 - scoring each tree against this data
@@ -164,10 +162,6 @@ class NodeTree(
     if (s>0) s else -s
   }
 
-  def printToString(paramlist: List[AnyVal] = List()) {
-    root.printToString(paramlist)
-  }
-
   def evaluate(paramlist: List[AnyVal]): AnyVal = {
     root.evaluate(paramlist)
   }
@@ -176,17 +170,7 @@ class NodeTree(
     printToString(paramlist)
   }*/
 
-}
 
-// THIS IS ONLY FOR TESTING, might need to find a better way to test stuff
-/*
-object Stree{
-  val tfunc_add = Function.add(2)
-  val tfunc_sub = Function.sub(2)
-  val flist = List[Tfunc](tfunc_add, tfunc_sub)
-  val testTree = new Stree(1, flist, 1, 0.5f, 0.5f)
-  def random_treetest(depth: Int=0): Node = testTree.randomTree(depth)
-}*/
 
 
 

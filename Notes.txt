@@ -1,0 +1,27 @@
+TODO:
+=====
+Add mutations 
+- Perhaps by generating completley new Trees rather than actually 'mutating'
+- Define what it is to mutate/breed tree
+--  Breeding: Combining existing FNodes/Cnode? 
+              How long will your trees get?
+              Will trees be pruned? Is there a limit?
+-- Mutations: Simply replacing part of a node with another randomly generated node?
+
+
+Devise a process to rank a tree with a scoring function
+- Right now there is a score function that that evalutes your tree of nodes
+- Perhaps start off by rankings by max score
+- If ranking by evaluationg of a tree than we would expect after several generations a long tree that contains many power, mulitplication, addition
+
+
+Other Notes
+============
+The parameter node was removes because it seems to have had the same functionality of a constant node
+Still alot of stuff commented out at the ends of TreeTest.scala (For dev testing?)  and NodeTree.scala (Just realized contains both trees and nodes, file probably needs name change)
+Left those things commented out to try and understand what you were trying to do a represent it in a more concise manner.
+Don't really understand the requirements for mutating and breeding.
+Also not sure why we would want to represent a number other than a double.
+Not too sure what greaterThan and lessThan should produce, (a one or zero?)
+
+I know the purpose of this was just for learning Scala, but found myself needing an objective.
